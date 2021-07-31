@@ -1,28 +1,12 @@
-const sharp = require("sharp");
+const Jimp = require("jimp");
+const sizeOf = require("image-size");
 const ziplib = require("adm-zip");
 const fs = require("fs");
-const LEFT = 1,
-  RIGHT = 2,
-  N_DIGITS = 3,
-  SOURCE_PATH = "sources\\",
+const SOURCE_PATH = "sources\\",
   EXTRACT_PATH = ".tmp\\extracted\\",
   CUT_PATH = ".tmp\\cut\\",
   OUTPUT_PATH = "output\\";
 const HAS_COVER_PARAM = "--hasSinglePageCover";
-const SHARP_CONFIG = {
-  1: {
-    width: 1475,
-    height: 2150,
-    left: 0,
-    top: 0,
-  },
-  2: {
-    width: 1475,
-    height: 2150,
-    left: 1475,
-    top: 0,
-  },
-};
 numberToFilename = (number, nDigit) => {
   let numberString = number + "";
   while (numberString.length < nDigit) {
@@ -31,15 +15,7 @@ numberToFilename = (number, nDigit) => {
   return numberString;
 };
 cutPage = async (inputFileName, outputFileNumber) => {
-  //const originalImage = numberToFilename(fileName, N_DIGITS) + FILE_EXT;
-  //const outputImage =
-  //"outputs\\" +
-  //(side === RIGHT
-  // ? numberToFilename(fileName, N_DIGITS)
-  //: numberToFilename(fileName + 1, N_DIGITS)) +
-  //FILE_EXT;
-  // Get img width
-  let { width, height } = await sharp(EXTRACT_PATH + inputFileName).metadata();
+  let { width, height } = sizeOf(EXTRACT_PATH + inputFileName);
   width = width - (width - (width % 2)) / 2;
   const OPTIONS_FOR_RIGHT = {
       width,
@@ -56,13 +32,27 @@ cutPage = async (inputFileName, outputFileNumber) => {
   if (!fs.existsSync(CUT_PATH)) {
     fs.mkdirSync(CUT_PATH);
   }
-  await sharp(EXTRACT_PATH + inputFileName)
-    .extract(OPTIONS_FOR_RIGHT)
-    .toFile(CUT_PATH + outputFileNumber + "." + FILE_EXT);
+  const imageRight = await Jimp.read(EXTRACT_PATH + inputFileName);
+
+  await imageRight.crop(
+    OPTIONS_FOR_RIGHT.left,
+    OPTIONS_FOR_RIGHT.top,
+    OPTIONS_FOR_RIGHT.width,
+    OPTIONS_FOR_RIGHT.height
+  );
+  await imageRight.writeAsync(CUT_PATH + outputFileNumber + "." + FILE_EXT);
+  console.log("Saved image:", outputFileNumber);
   outputFileNumber++;
-  await sharp(EXTRACT_PATH + inputFileName)
-    .extract(OPTIONS_FOR_LEFT)
-    .toFile(CUT_PATH + outputFileNumber + "." + FILE_EXT);
+  const imageLeft = await Jimp.read(EXTRACT_PATH + inputFileName);
+
+  await imageLeft.crop(
+    OPTIONS_FOR_LEFT.left,
+    OPTIONS_FOR_LEFT.top,
+    OPTIONS_FOR_LEFT.width,
+    OPTIONS_FOR_LEFT.height
+  );
+  await imageLeft.writeAsync(CUT_PATH + outputFileNumber + "." + FILE_EXT);
+  console.log("Saved image:", outputFileNumber);
 };
 function deleteTmpDir() {
   if (fs.existsSync(EXTRACT_PATH)) {
@@ -140,3 +130,4 @@ start();
 // Get files names array in order
 // For every file make cuts and save on .tmp/cut
 // Compress all files and save on outputs
+// Delete tmp directory

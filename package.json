@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "adm-zip": "^0.5.2",
-    "sharp": "^0.28.3"
+    "image-size": "^1.0.0",
+    "jimp": "^0.16.1"
   }
 }
