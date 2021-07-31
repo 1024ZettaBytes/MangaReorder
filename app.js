@@ -1,28 +1,11 @@
 const sharp = require("sharp");
 const ziplib = require("adm-zip");
 const fs = require("fs");
-const LEFT = 1,
-  RIGHT = 2,
-  N_DIGITS = 3,
-  SOURCE_PATH = "sources\\",
+const SOURCE_PATH = "sources\\",
   EXTRACT_PATH = ".tmp\\extracted\\",
   CUT_PATH = ".tmp\\cut\\",
   OUTPUT_PATH = "output\\";
 const HAS_COVER_PARAM = "--hasSinglePageCover";
-const SHARP_CONFIG = {
-  1: {
-    width: 1475,
-    height: 2150,
-    left: 0,
-    top: 0,
-  },
-  2: {
-    width: 1475,
-    height: 2150,
-    left: 1475,
-    top: 0,
-  },
-};
 numberToFilename = (number, nDigit) => {
   let numberString = number + "";
   while (numberString.length < nDigit) {
@@ -31,14 +14,6 @@ numberToFilename = (number, nDigit) => {
   return numberString;
 };
 cutPage = async (inputFileName, outputFileNumber) => {
-  //const originalImage = numberToFilename(fileName, N_DIGITS) + FILE_EXT;
-  //const outputImage =
-  //"outputs\\" +
-  //(side === RIGHT
-  // ? numberToFilename(fileName, N_DIGITS)
-  //: numberToFilename(fileName + 1, N_DIGITS)) +
-  //FILE_EXT;
-  // Get img width
   let { width, height } = await sharp(EXTRACT_PATH + inputFileName).metadata();
   width = width - (width - (width % 2)) / 2;
   const OPTIONS_FOR_RIGHT = {
@@ -140,3 +115,4 @@ start();
 // Get files names array in order
 // For every file make cuts and save on .tmp/cut
 // Compress all files and save on outputs
+// Deleted tmp directory
